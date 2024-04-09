@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>九宫格棋盘</title>
+    <style>
+        .button {
+            width: 55px;
+            height: 55px;
+            background-color: grey;
+            border: none;
+        }
+        .reset-button {
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>九宫格棋盘</h1>
+    <table>
+        <tbody id="board">
+            <!-- 棋盘格子将在JavaScript中动态生成 -->
+        </tbody>
+    </table>
+    <button class="reset-button" onclick="resetGame()">重置</button>
+
+    <script>
+        function isFull(limita, limitb) {
+            for (var i = limita[0]; i <= limitb[0]; i++) {
+                for (var j = limita[1]; j <= limitb[1]; j++) {
+                    if (board[i][j] === ' ') {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        // 初始化棋盘
+        var board = [[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']];
+        
+        // 定义当前下棋方
+        var currentPlayer = 'O';
+        var lastmove = [];
+        // 创建棋盘格子
+        var boardElement = document.getElementById('board');
+        for (var i = 0; i < 9; i++) {
+            var row = document.createElement('tr');
+            for (var j = 0; j < 9; j++) {
+                var cell = document.createElement('td');
+                var button = document.createElement('button');
+                button.classList.add('button');
+                button.onclick = (function(row, col) {
+                    return function() {
+                        buttonClick(row, col);
+                    };
+                })(i, j);
+                cell.appendChild(button);
+                row.appendChild(cell);
+            }
+            boardElement.appendChild(row);
+        }
+
+        // 处理按钮点击事件
+        function buttonClick(row, col) {
+
+            var subgridRow = row % 3;
+            var subgridCol = col % 3;
+
+            // 判断位置是否合法
+            if (!isValidSubgrid(row, col)) {
+                return;
+            }
+
+            // 在棋盘上落子
+            board[row][col] = currentPlayer;
+
+            // 更新按钮上的文本
+            var button = boardElement.rows[row].cells[col].querySelector('button');
+            button.textContent = currentPlayer;
+            lastmove = [row % 3 * 3, col%3*3]
+            // 切换下一个下棋方
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+
+            // 清空按钮颜色
+            clearButtonColors();
+            // 更新可下棋的按钮颜色
+            if (isFull([subgridRow*3,subgridCol*3], [subgridRow*3+2, subgridCol*3+2])){
+                for (var i = 0; i < 9; i++) {
+                    for (var j = 0; j < 9; j++) {
+                        if (board[i][j] === ' ') {
+                            var button = boardElement.rows[i].cells[j].querySelector('button');
+                            button.style.backgroundColor = '#B0C4DE';
+                        }
+                    }
+                }
+            }
+            else{
+                updateValidButtonColors(subgridRow, subgridCol);
+            }
+        }
+
+        // 判断九宫格范围是否合法
+        function isValidSubgrid(row, col) {
+            if (board[row][col] !== ' ') {
+                return false;
+            }
+
+            var limita = lastmove;
+            if (limita.length === 0) {
+                if (row === 4 && col === 4) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            var limitb = limita.map(function(limit) {
+                return limit + 2;
+            });
+
+            if (isFull(limita, limitb)) {
+                return true;
+            }
+
+            if (row < limita[0] || row > limitb[0] || col < limita[1] || col > limitb[1]) {
+                return false;
+            }
+
+            return true;
+        }
+
+        // 判断九宫格是否已满
+        
+
+        // 更新可下棋的按钮颜色
+        function updateValidButtonColors(subgridRow, subgridCol) {
+            var limita = [subgridRow * 3, subgridCol * 3];
+            var limitb = [subgridRow * 3 + 2, subgridCol * 3 + 2];
+
+            for (var i = limita[0]; i <= limitb[0]; i++) {
+                for (var j = limita[1]; j <= limitb[1]; j++) {
+                    if (board[i][j] === ' ') {
+                        var button = boardElement.rows[i].cells[j].querySelector('button');
+                        button.style.backgroundColor = '#B0C4DE';
+                    }
+                }
+            }
+        }
+
+        // 清空按钮颜色
+        function clearButtonColors() {
+            for (var i = 0; i < 9; i++) {
+                for (var j = 0; j < 9; j++) {
+                    var button = boardElement.rows[i].cells[j].querySelector('button');
+                    button.style.backgroundColor = '';
+                }
+            }
+        }
+
+        // 重置游戏
+        function resetGame() {
+            board = [[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']];
+            lastmove = [];
+            for (var i = 0; i < 9; i++) {
+                for (var j = 0; j < 9; j++) {
+                    var button = boardElement.rows[i].cells[j].querySelector('button');
+                    button.style.backgroundColor = '#B0C4DE';
+                    button.textContent = '';
+                }
+            }
+
+            currentPlayer = 'O';
+            clearButtonColors();
+        }
+    </script>
+</body>
+</html>
